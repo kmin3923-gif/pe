@@ -1,0 +1,12 @@
+{
+  "name": "club-platform-server",
+  "version": "1.0.0",
+  "description": "Express backend for university sports club platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
