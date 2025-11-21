@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>VolleyLink - 대학 배구 교류전 플랫폼</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 스타일 파일 연결 -->
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -13,7 +14,8 @@
       <span class="logo">VolleyLink</span>
       <span class="logo-sub">대학 배구 교류전</span>
     </div>
-    <button class="btn btn-outline btn-small">로그인</button>
+    <!-- 로그인 / 로그아웃 버튼 (상태에 따라 텍스트 변경됨) -->
+    <button id="authButton" class="btn btn-outline btn-small">로그인</button>
   </header>
 
   <main class="page">
@@ -122,7 +124,6 @@
           </div>
         </article>
 
-        <!-- 필요하면 매치 카드 복붙해서 여러 개 추가 -->
         <article class="match-card">
           <div class="match-card__header">
             <div>
@@ -260,8 +261,136 @@
     + 새 교류전 만들기
   </button>
 
-  <!-- 탭 전환용 아주 간단한 JS (없어도 사이트는 뜸) -->
+  <!-- 🔒 로그인 모달 -->
+  <div id="authModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <h2>로그인</h2>
+      <p class="modal-sub">이메일로 로그인하고 팀 라커룸을 관리해보세요.</p>
+
+      <input id="emailInput" class="input" type="email" placeholder="이메일 주소" />
+      <input id="passwordInput" class="input" type="password" placeholder="비밀번호" />
+
+      <p id="authError" class="auth-error hidden"></p>
+
+      <div class="modal-actions">
+        <button id="loginSubmit" class="btn btn-primary btn-small">로그인</button>
+        <button id="closeModal" class="btn btn-outline btn-small">취소</button>
+      </div>
+
+      <p class="helper-text">
+        테스트용 계정은 Firebase 콘솔 &gt; Authentication에서 이메일/비밀번호를 추가해 만들 수 있어요.
+      </p>
+    </div>
+  </div>
+
+  <!-- 🔧 Firebase SDK (compat 버전) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
+  <!-- 🔧 메인 스크립트 -->
   <script>
+    // 1) Firebase 설정 (너 콘솔에 나온 값 그대로 사용)
+    const firebaseConfig = {
+      apiKey: "AIzaSyC68iamTPlK6-0xHIEPJQMLzJoZCw6y9mg",
+      authDomain: "volleylink-7165f.firebaseapp.com",
+      projectId: "volleylink-7165f",
+      storageBucket: "volleylink-7165f.firebasestorage.app",
+      messagingSenderId: "891161836412",
+      appId: "1:891161836412:web:1696fc610dcf00a24424f9",
+      measurementId: "G-1CM3ZMSMTE"
+    };
+
+    // 2) Firebase 초기화
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // 3) 로그인 관련 DOM 요소
+    const authButton = document.getElementById("authButton");
+    const authModal = document.getElementById("authModal");
+    const closeModal = document.getElementById("closeModal");
+    const loginSubmit = document.getElementById("loginSubmit");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const authError = document.getElementById("authError");
+
+    function openModal() {
+      authModal.classList.remove("hidden");
+      authError.classList.add("hidden");
+      authError.textContent = "";
+    }
+
+    function closeAuthModal() {
+      authModal.classList.add("hidden");
+    }
+
+    // 로그인 버튼 클릭 시
+    authButton.addEventListener("click", () => {
+      if (auth.currentUser) {
+        // 이미 로그인 상태면 → 로그아웃
+        auth.signOut();
+      } else {
+        // 로그아웃 상태면 → 로그인 모달 열기
+        openModal();
+      }
+    });
+
+    // 모달 닫기
+    closeModal.addEventListener("click", closeAuthModal);
+
+    // 로그인 시도
+    loginSubmit.addEventListener("click", () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        authError.textContent = "이메일과 비밀번호를 모두 입력해주세요.";
+        authError.classList.remove("hidden");
+        return;
+      }
+
+      authError.classList.add("hidden");
+      authError.textContent = "";
+
+      auth
+        .signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          console.log("로그인 성공:", userCredential.user.email);
+          closeAuthModal();
+          emailInput.value = "";
+          passwordInput.value = "";
+        })
+        .catch((error) => {
+          console.error(error);
+          authError.textContent =
+            "로그인 실패: 이메일 또는 비밀번호를 확인해주세요.";
+          authError.classList.remove("hidden");
+        });
+    });
+
+    // 엔터키로도 로그인
+    [emailInput, passwordInput].forEach((el) => {
+      el.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          loginSubmit.click();
+        }
+      });
+    });
+
+    // 로그인 상태 감지해서 버튼 상태 바꾸기
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        authButton.textContent = "로그아웃";
+        authButton.classList.remove("btn-outline");
+        authButton.classList.add("btn-secondary");
+      } else {
+        authButton.textContent = "로그인";
+        authButton.classList.remove("btn-secondary");
+        authButton.classList.add("btn-outline");
+      }
+    });
+
+    // 4) 탭 전환 로직
     const tabButtons = document.querySelectorAll(".tab-nav__item");
     const tabContents = document.querySelectorAll(".tab-content");
 
@@ -269,7 +398,9 @@
       btn.addEventListener("click", () => {
         const target = btn.dataset.tab;
 
-        tabButtons.forEach((b) => b.classList.remove("tab-nav__item--active"));
+        tabButtons.forEach((b) =>
+          b.classList.remove("tab-nav__item--active")
+        );
         btn.classList.add("tab-nav__item--active");
 
         tabContents.forEach((c) => {
@@ -282,6 +413,4 @@
     });
   </script>
 </body>
-</html>
-
 </html>
