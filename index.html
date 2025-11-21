@@ -80,7 +80,7 @@
         />
       </div>
 
-      <!-- 매치 카드 리스트 (Firestore에서 불러옴) -->
+      <!-- 매치 카드 리스트 -->
       <section class="section-spacing">
         <div class="section-header">
           <h2 class="section-title">오늘 모집 중인 교류전</h2>
@@ -186,12 +186,12 @@
     </section>
   </main>
 
-  <!-- 플로팅 CTA: 새 교류전 만들기 -->
+  <!-- 플로팅 CTA -->
   <button class="floating-cta">
     + 새 교류전 만들기
   </button>
 
-  <!-- 🔒 로그인/회원가입 모달 -->
+  <!-- 로그인/회원가입 모달 -->
   <div id="authModal" class="modal hidden">
     <div class="modal-backdrop"></div>
     <div class="modal-content">
@@ -217,7 +217,6 @@
         </button>
       </p>
 
-      <!-- 도메인 문의 안내 -->
       <p class="helper-text helper-text-secondary">
         회원가입이 되지 않을 경우, 사용 중인 학교 이메일 주소 또는 도메인(예: <strong>xxxx@학교이름.ac.kr</strong>)을
         운영진 문의 메일로 보내주시면 등록해 드리겠습니다.<br />
@@ -227,7 +226,7 @@
     </div>
   </div>
 
-  <!-- 🏐 교류전 생성 모달 -->
+  <!-- 교류전 생성 모달 -->
   <div id="matchModal" class="modal hidden">
     <div class="modal-backdrop"></div>
     <div class="modal-content">
@@ -254,14 +253,13 @@
     </div>
   </div>
 
-  <!-- Firebase SDK (compat) -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
-  <!-- 메인 스크립트 -->
   <script>
-    // 1) Firebase 설정: 여기 YOUR_... 부분을 네 콘솔 값으로 바꿔 넣기
+    // 1) Firebase 설정: 여기 네 프로젝트 값으로 변경 필수!
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -272,7 +270,7 @@
       measurementId: "YOUR_MEASUREMENT_ID"
     };
 
-    // 2) 허용할 학교 이메일 도메인 목록
+    // 2) 허용 도메인
     const allowedDomains = [
       // 서울권
       "snu.ac.kr", "yonsei.ac.kr", "korea.ac.kr", "ewha.ac.kr", "sogang.ac.kr",
@@ -280,23 +278,21 @@
       "skku.edu", "sju.ac.kr", "sejong.ac.kr", "hansung.ac.kr", "hongik.ac.kr",
       "sookmyung.ac.kr", "konkuk.ac.kr", "kookmin.ac.kr", "kw.ac.kr",
       "sungshin.ac.kr",
-
       // 인천·경기권
       "inha.ac.kr", "inu.ac.kr", "gachon.ac.kr", "ajou.ac.kr", "kyonggi.ac.kr",
       "hs.ac.kr", "dankook.ac.kr", "catholic.ac.kr", "su.ac.kr", "khu.ac.kr",
       "eulji.ac.kr", "smu.ac.kr", "hknu.ac.kr",
-
       // 천안·아산권
       "koreatech.ac.kr", "cheonan.ac.kr", "kongju.ac.kr", "sch.ac.kr",
       "hoseo.edu", "cjnu.ac.kr", "baewha.ac.kr"
     ];
 
-    // 3) Firebase 초기화
+    // Firebase 초기화
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // ---- 로그인/회원가입 관련 DOM ----
+    // DOM
     const authButton = document.getElementById("authButton");
     const authModal = document.getElementById("authModal");
     const closeModal = document.getElementById("closeModal");
@@ -309,7 +305,7 @@
     const authToggleText = document.getElementById("authToggleText");
     const authToggleButton = document.getElementById("authToggleButton");
 
-    let isSignupMode = false; // false: 로그인, true: 회원가입
+    let isSignupMode = false;
 
     function openModal() {
       authModal.classList.remove("hidden");
@@ -393,29 +389,45 @@
           return;
         }
 
-        // 회원가입 + users 컬렉션에 저장
+        // 회원가입 (Auth) – 여기서만 실패하면 에러로 처리
         auth
           .createUserWithEmailAndPassword(email, password)
           .then((userCredential) => {
             const user = userCredential.user;
-            return db.collection("users").doc(user.uid).set(
+
+            // users 컬렉션 저장은 실패해도 회원가입 자체는 성공 처리
+            db.collection("users").doc(user.uid).set(
               {
                 email: user.email,
                 domain: emailDomain,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
               },
               { merge: true }
-            );
-          })
-          .then(() => {
+            ).catch((e) => {
+              console.error("users 저장 에러(회원가입은 성공): ", e);
+            });
+
             closeAuthModal();
             emailInput.value = "";
             passwordInput.value = "";
           })
           .catch((error) => {
-            console.error(error);
-            authError.textContent =
-              "회원가입 실패: 이미 사용 중인 이메일이거나 형식이 올바르지 않습니다.";
+            console.error("SIGNUP ERROR =>", error);
+            let msg = "회원가입 실패: 잠시 후 다시 시도해주세요.";
+
+            if (error.code === "auth/email-already-in-use") {
+              msg = "이미 가입된 이메일입니다. 로그인으로 시도해 주세요.";
+            } else if (error.code === "auth/invalid-email") {
+              msg = "이메일 형식이 올바르지 않습니다. 학교 이메일 주소를 다시 확인해 주세요.";
+            } else if (error.code === "auth/weak-password") {
+              msg = "비밀번호가 너무 약합니다. 6자 이상으로 설정해 주세요.";
+            } else if (error.code === "auth/network-request-failed") {
+              msg = "네트워크 오류가 발생했습니다. 인터넷 연결을 확인해 주세요.";
+            } else if (error.code === "auth/operation-not-allowed") {
+              msg = "이메일/비밀번호 로그인 방식이 비활성화되어 있습니다. 콘솔 설정을 확인해 주세요.";
+            }
+
+            authError.textContent = msg;
             authError.classList.remove("hidden");
           });
       } else {
@@ -428,9 +440,20 @@
             passwordInput.value = "";
           })
           .catch((error) => {
-            console.error(error);
-            authError.textContent =
-              "로그인 실패: 이메일 또는 비밀번호를 확인해주세요.";
+            console.error("LOGIN ERROR =>", error);
+            let msg = "로그인 실패: 이메일 또는 비밀번호를 확인해주세요.";
+
+            if (error.code === "auth/user-not-found") {
+              msg = "해당 이메일로 가입된 계정을 찾을 수 없습니다.";
+            } else if (error.code === "auth/wrong-password") {
+              msg = "비밀번호가 올바르지 않습니다.";
+            } else if (error.code === "auth/invalid-email") {
+              msg = "이메일 형식이 올바르지 않습니다.";
+            } else if (error.code === "auth/network-request-failed") {
+              msg = "네트워크 오류가 발생했습니다. 인터넷 연결을 확인해 주세요.";
+            }
+
+            authError.textContent = msg;
             authError.classList.remove("hidden");
           });
       }
@@ -456,7 +479,7 @@
       }
     });
 
-    // ---- 탭 전환 ----
+    // 탭 전환
     const tabButtons = document.querySelectorAll(".tab-nav__item");
     const tabContents = document.querySelectorAll(".tab-content");
 
@@ -475,7 +498,7 @@
       });
     });
 
-    // ---- 교류전 생성/목록 ----
+    // 교류전 생성/목록
     const floatingCta = document.querySelector(".floating-cta");
     const matchModal = document.getElementById("matchModal");
     const matchTitleInput = document.getElementById("matchTitleInput");
@@ -627,7 +650,6 @@
         });
     }
 
-    // 첫 로딩 시 교류전 목록 불러오기
     loadMatches();
   </script>
 </body>
