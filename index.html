@@ -335,6 +335,7 @@
     // 3) Firebase 초기화
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const db = firebase.firestore();
 
     // 4) 로그인/회원가입 관련 DOM
     const authButton = document.getElementById("authButton");
