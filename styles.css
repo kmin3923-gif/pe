@@ -53,7 +53,7 @@ body {
   color: var(--text-sub);
 }
 
-/* 공통 버튼 스타일 */
+/* 버튼 공통 */
 .btn {
   border-radius: 999px;
   border: none;
@@ -97,12 +97,12 @@ body {
   padding: 4px 10px;
 }
 
-/* 페이지 전체 여백 */
+/* 페이지 레이아웃 */
 .page {
   padding: 12px 16px 80px;
 }
 
-/* 히어로 영역 */
+/* 히어로 */
 .hero {
   margin-top: 6px;
   margin-bottom: 16px;
@@ -162,7 +162,7 @@ body {
   display: block;
 }
 
-/* 카드 공통 */
+/* 카드 */
 .card {
   background: rgba(15, 23, 42, 0.9);
   border-radius: 14px;
@@ -170,7 +170,7 @@ body {
   border: 1px solid rgba(55, 65, 81, 0.9);
 }
 
-/* 섹션 공통 */
+/* 섹션 */
 .section-title {
   font-size: 15px;
   margin: 0 0 6px 0;
@@ -527,7 +527,25 @@ body {
   display: none;
 }
 
-/* 반응형 - 태블릿/PC에서 약간 넓게 보이게 */
+/* 모달 안에서 로그인/회원가입 전환 링크 */
+.modal-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 4px;
+  font-size: 11px;
+  color: var(--accent-strong);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* 안내 문구 두 번째 줄 */
+.helper-text-secondary {
+  margin-top: 4px;
+  font-size: 11px;
+}
+
+/* 반응형 */
 @media (min-width: 768px) {
   .page {
     max-width: 900px;
@@ -543,10 +561,3 @@ body {
     padding: 14px;
   }
 }
-
-/* 모달 안 안내 문구 2줄째 여백 조금 띄우기 */
-.helper-text-secondary {
-  margin-top: 4px;
-  font-size: 11px;
-}
-
