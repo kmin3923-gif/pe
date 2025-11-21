@@ -1,48 +1,200 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>매칭 등록하기 - 대학 스포츠 동아리 플랫폼</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <title>새 교류전 / 용병 모집 - VolleyLink</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <nav>
-    <a href="index.html">홈</a>
-    <a href="match.html">매칭 둘러보기</a>
-    <a href="team.html">우리팀</a>
-    <a href="profile.html">내 프로필</a>
-    <a href="match-new.html">매칭 등록하기</a>
-  </nav>
-  <div class="container">
-    <h1>매칭 등록하기</h1>
-    <form>
-      <label>날짜<br><input type="date" required></label>
-      <label>시간<br><input type="time" required></label>
-      <label>장소<br><input type="text" placeholder="예: 서울 OO대학교 체육관" required></label>
-      <label>희망 실력<br>
-        <select>
-          <option value="A">A</option>
-          <option value="B">B</option>
-          <option value="C">C</option>
-          <option value="D">D</option>
-        </select>
-      </label>
-      <label>성별 구분<br>
-        <select>
-          <option value="men">남자</option>
-          <option value="women">여자</option>
-          <option value="mixed">혼성</option>
-        </select>
-      </label>
-      <label>경기 방식<br>
-        <select>
-          <option value="6">6인제</option>
-          <option value="9">9인제</option>
-        </select>
-      </label>
-      <label>비고/메모<br><textarea rows="3" placeholder="추가로 남기고 싶은 말"></textarea></label>
-      <button type="submit">매칭 카드 생성</button>
-    </form>
-  </div>
+  <header class="top-bar">
+    <div class="top-bar__left">
+      <a href="index.html" class="logo">VolleyLink</a>
+      <span class="logo-sub">대학 배구 교류전</span>
+    </div>
+    <a href="login.html" class="btn btn-outline btn-small">로그인</a>
+  </header>
+
+  <main class="page">
+    <section class="card" style="max-width:720px;margin:24px auto;">
+      <h1 class="section-title">교류전 / 용병 모집 글 올리기</h1>
+      <p class="subtitle">
+        대학 배구 동아리 간 교류전이나, 용병이 필요할 때 모집 글을 올려주세요.
+      </p>
+
+      <!-- 모집 종류 -->
+      <div class="filter-group">
+        <label class="filter-label">모집 종류</label>
+        <div class="chip-row">
+          <label class="chip">
+            <input type="radio" name="postType" value="교류전" checked />
+            교류전
+          </label>
+          <label class="chip">
+            <input type="radio" name="postType" value="용병" />
+            용병 모집
+          </label>
+        </div>
+      </div>
+
+      <!-- 학교/팀 이름 -->
+      <input
+        id="teamNameInput"
+        class="input"
+        type="text"
+        placeholder="학교 · 동아리명 (예: 한신대 비상)"
+      />
+
+      <!-- 글 제목 -->
+      <input
+        id="titleInput"
+        class="input"
+        type="text"
+        placeholder="제목 (예: 한신대 비상 vs 연세대 교류전 상대 구합니다)"
+      />
+
+      <!-- 날짜/시간 -->
+      <div class="filter-row">
+        <div class="filter-group">
+          <label class="filter-label">날짜</label>
+          <input id="dateInput" class="input" type="date" />
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">시간</label>
+          <input id="timeInput" class="input" type="time" />
+        </div>
+      </div>
+
+      <!-- 장소 -->
+      <input
+        id="locationInput"
+        class="input"
+        type="text"
+        placeholder="장소 (예: 한신대 체육관 / 상대 학교 방문 등)"
+      />
+
+      <!-- 모집 인원 (선택) -->
+      <input
+        id="capacityInput"
+        class="input"
+        type="number"
+        min="1"
+        placeholder="모집 인원 (선택, 예: 12)"
+      />
+
+      <!-- 상세 설명 -->
+      <textarea
+        id="noteInput"
+        class="input"
+        style="min-height:120px;"
+        placeholder="상대 조건, 실력 수준, 경기 방식(9인제/6인제), 준비물, 주차/촬영 가능 여부 등 자세히 적어주세요."
+      ></textarea>
+
+      <p id="formError" class="auth-error hidden"></p>
+
+      <div class="modal-actions" style="margin-top:16px;">
+        <button id="submitButton" class="btn btn-primary btn-small">
+          등록하기
+        </button>
+        <a href="index.html" class="btn btn-outline btn-small">취소</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    // 🔥 여기 firebaseConfig는 네 프로젝트 값으로 바꿔줘 (index.html이랑 똑같이)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID",
+      measurementId: "YOUR_MEASUREMENT_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const teamNameInput = document.getElementById("teamNameInput");
+    const titleInput = document.getElementById("titleInput");
+    const dateInput = document.getElementById("dateInput");
+    const timeInput = document.getElementById("timeInput");
+    const locationInput = document.getElementById("locationInput");
+    const capacityInput = document.getElementById("capacityInput");
+    const noteInput = document.getElementById("noteInput");
+    const formError = document.getElementById("formError");
+    const submitButton = document.getElementById("submitButton");
+
+    submitButton.addEventListener("click", async () => {
+      formError.classList.add("hidden");
+      formError.textContent = "";
+
+      const teamName = teamNameInput.value.trim();
+      const title = titleInput.value.trim();
+      const dateStr = dateInput.value;
+      const timeStr = timeInput.value;
+      const location = locationInput.value.trim();
+      const capacity = capacityInput.value.trim();
+      const note = noteInput.value.trim();
+
+      const postTypeInput = document.querySelector(
+        'input[name="postType"]:checked'
+      );
+      const postType = postTypeInput ? postTypeInput.value : "교류전";
+
+      // 필수값 체크
+      if (!teamName || !title || !dateStr || !timeStr || !location) {
+        formError.textContent =
+          "학교/동아리명, 제목, 날짜, 시간, 장소는 필수 입력입니다.";
+        formError.classList.remove("hidden");
+        return;
+      }
+
+      // 로그인 여부 체크
+      if (!auth.currentUser) {
+        formError.textContent =
+          "모집 글을 올리려면 먼저 로그인 해주세요.";
+        formError.classList.remove("hidden");
+        return;
+      }
+
+      // JS Date → Firestore Timestamp
+      const dateTime = new Date(`${dateStr}T${timeStr}:00`);
+      const matchDate = firebase.firestore.Timestamp.fromDate(dateTime);
+
+      try {
+        await db.collection("matches").add({
+          postType,          // "교류전" / "용병"
+          teamName,
+          title,
+          matchDate,
+          dateText: `${dateStr} ${timeStr}`, // 리스트에서 그냥 보여줄 용도
+          location,
+          capacity: capacity ? parseInt(capacity, 10) : null,
+          currentCount: 0,
+          note,
+          status: "모집 중",
+          createdByUid: auth.currentUser.uid,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert("모집 글이 등록되었습니다.");
+        // 홈으로 이동
+        window.location.href = "index.html";
+      } catch (error) {
+        console.error(error);
+        formError.textContent =
+          "저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+        formError.classList.remove("hidden");
+      }
+    });
+  </script>
 </body>
 </html>

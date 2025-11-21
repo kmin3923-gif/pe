@@ -1,53 +1,670 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>대학 스포츠 동아리 플랫폼</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <title>VolleyLink - 대학 배구 교류전 플랫폼</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <nav>
-    <a href="index.html">홈</a>
-    <a href="match.html">매칭 둘러보기</a>
-    <a href="team.html">우리팀</a>
-    <a href="profile.html">내 프로필</a>
-    <a href="match-new.html">매칭 등록하기</a>
-  </nav>
-
-  <section class="hero">
-    <h1>전국 대학 배구 동아리 교류전, 이제 믿고 매칭하자!</h1>
-    <p>학교 인증된 동아리끼리만 매칭·용병·경기 기록을 하나의 플랫폼에서.</p>
-    <p><a href="signup.html">학교 이메일로 시작하기</a> | <a href="login.html">로그인하기</a></p>
-  </section>
-
-  <section class="features">
-    <h2>주요 기능</h2>
-    <div class="feature">
-      <div class="icon">⚖️</div>
-      <div><strong>공정한 매칭</strong><br>실력 등급/규모 기반 자동 매칭</div>
+  <!-- 상단 바 -->
+  <header class="top-bar">
+    <div class="top-bar__left">
+      <span class="logo">VolleyLink</span>
+      <span class="logo-sub">대학 배구 교류전</span>
     </div>
-    <div class="feature">
-      <div class="icon">📊</div>
-      <div><strong>체계적인 기록</strong><br>팀 전적, 상대 전적 자동 저장</div>
-    </div>
-    <div class="feature">
-      <div class="icon">🎓</div>
-      <div><strong>대학생 인증</strong><br>ac.kr 이메일로 인증된 팀만 입장</div>
-    </div>
-  </section>
+    <button id="authButton" class="btn btn-outline btn-small">로그인</button>
+  </header>
 
-  <section class="steps">
-    <h2>어떻게 동작하나요?</h2>
-    <ol>
-      <li>학교 이메일로 가입</li>
-      <li>팀 등록 &amp; 승인</li>
-      <li>매칭 카드 등록/신청</li>
-      <li>경기 후 결과 입력 &amp; 전적 확인</li>
-    </ol>
-  </section>
+  <main class="page">
+    <!-- 히어로 영역 -->
+    <section class="hero">
+      <h1>주장님, 오늘은<br>어디로 교류전 가실래요?</h1>
+      <p>
+        전국 대학 배구 동아리 교류전을 한 곳에서 관리하고,<br>
+        실력·지역·성별에 맞는 팀과 안전하게 매칭해요.
+      </p>
+      <div class="hero-cta-row">
+        <button class="btn btn-primary">내 팀 등록하기</button>
+        <button class="btn btn-secondary">교류전 둘러보기</button>
+      </div>
 
-  <footer>
-    &copy; 2025 대학 스포츠 동아리 플랫폼
-  </footer>
+      <!-- 오늘 올라온 교류전 · 용병 모집 리스트 (홈 중간 메인 영역) -->
+      <section class="section-spacing">
+        <div class="section-header">
+          <h2 class="section-title">오늘 올라온 교류전 · 용병 모집</h2>
+          <a href="#" id="heroCreateBtn" class="btn btn-primary btn-small">
+            + 모집 글 올리기
+          </a>
+        </div>
+
+        <div id="matchList"></div>
+      </section>
+    </section>
+
+    <!-- 탭 네비게이션 -->
+    <nav class="tab-nav">
+      <button class="tab-nav__item tab-nav__item--active" data-tab="matches">매치 찾기</button>
+      <button class="tab-nav__item" data-tab="locker">팀 라커룸</button>
+      <button class="tab-nav__item" data-tab="ranking">랭킹</button>
+    </nav>
+
+    <!-- 매치 찾기 탭 -->
+    <section id="tab-matches" class="tab-content tab-content--active">
+      <!-- 필터 영역 -->
+      <div class="card">
+        <h2 class="section-title">매치 조건 선택</h2>
+        <div class="filter-row">
+          <div class="filter-group">
+            <label class="filter-label">게임 방식</label>
+            <div class="chip-row">
+              <button class="chip chip--active">9인제</button>
+              <button class="chip">6인제</button>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">성별</label>
+            <div class="chip-row">
+              <button class="chip chip--active">남자</button>
+              <button class="chip">여자</button>
+              <button class="chip">혼성</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-row">
+          <div class="filter-group full">
+            <label class="filter-label">지역</label>
+            <select class="select">
+              <option>전체 지역</option>
+              <option>서울권</option>
+              <option>경기/인천</option>
+              <option>충청/천안권</option>
+              <option>기타 지역</option>
+            </select>
+          </div>
+        </div>
+
+        <input
+          class="input"
+          type="text"
+          placeholder="학교명 또는 동아리명을 검색해보세요 (예: 한신대 비상)"
+        />
+      </div>
+      <!-- 이 아래에 매치 리스트는 히어로 쪽에서만 보여주도록 해서 제거 -->
+    </section>
+
+    <!-- 팀 라커룸 탭 -->
+    <section id="tab-locker" class="tab-content">
+      <section class="card">
+        <h2 class="section-title">라커룸 - 한신대 비상</h2>
+        <p class="subtitle">Hanshin Univ. Bisang</p>
+
+        <div class="stats-row">
+          <div class="stat-box">
+            <span class="stat-label">경기수</span>
+            <span class="stat-value">25</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">승리</span>
+            <span class="stat-value">22</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">승률</span>
+            <span class="stat-value stat-value--green">88%</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-header">
+          <h3 class="section-title small">선수 명단</h3>
+          <button class="btn btn-outline btn-small">새 선수 등록</button>
+        </div>
+
+        <div class="position-row">
+          <span class="position-chip">L</span>
+          <span class="position-chip">S</span>
+          <span class="position-chip">OH</span>
+          <span class="position-chip">OP</span>
+          <span class="position-chip">MB</span>
+        </div>
+
+        <p class="helper-text">
+          실제 서비스에서는 포지션별로 선수 이름과 학번, 주포지션/부포지션을 등록할 수 있어요.
+        </p>
+      </section>
+    </section>
+
+    <!-- 랭킹 탭 -->
+    <section id="tab-ranking" class="tab-content">
+      <section class="card">
+        <div class="section-header">
+          <h2 class="section-title">실시간 랭킹</h2>
+          <span class="subtitle">승률 기준 · 최소 10경기 이상 팀</span>
+        </div>
+
+        <ol class="ranking-list">
+          <li class="ranking-item">
+            <span class="ranking-pos">1</span>
+            <div class="ranking-main">
+              <span class="ranking-team">한체대 KNSU</span>
+              <span class="ranking-sub">서울 · 남자부 9인제</span>
+            </div>
+            <span class="ranking-rate">92%</span>
+          </li>
+          <li class="ranking-item">
+            <span class="ranking-pos">2</span>
+            <div class="ranking-main">
+              <span class="ranking-team">한신대 비상</span>
+              <span class="ranking-sub">경기 · 혼성 9인제</span>
+            </div>
+            <span class="ranking-rate">88%</span>
+          </li>
+          <li class="ranking-item">
+            <span class="ranking-pos">3</span>
+            <div class="ranking-main">
+              <span class="ranking-team">연세대 배구부</span>
+              <span class="ranking-sub">서울 · 남자부 6인제</span>
+            </div>
+            <span class="ranking-rate">85%</span>
+          </li>
+          <li class="ranking-item">
+            <span class="ranking-pos">4</span>
+            <div class="ranking-main">
+              <span class="ranking-team">서울대학교</span>
+              <span class="ranking-sub">서울 · 혼성 9인제</span>
+            </div>
+            <span class="ranking-rate">70%</span>
+          </li>
+          <li class="ranking-item">
+            <span class="ranking-pos">5</span>
+            <div class="ranking-main">
+              <span class="ranking-team">고려대학교</span>
+              <span class="ranking-sub">서울 · 남자부 6인제</span>
+            </div>
+            <span class="ranking-rate">60%</span>
+          </li>
+        </ol>
+      </section>
+    </section>
+  </main>
+
+  <!-- 플로팅 CTA -->
+  <button class="floating-cta">
+    + 새 교류전 만들기
+  </button>
+
+  <!-- 로그인/회원가입 모달 -->
+  <div id="authModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <h2 id="authModalTitle">로그인</h2>
+      <p id="authModalSub" class="modal-sub">
+        이메일로 로그인하고 팀 라커룸을 관리해보세요.
+      </p>
+
+      <input id="emailInput" class="input" type="email" placeholder="대학 이메일 주소" />
+      <input id="passwordInput" class="input" type="password" placeholder="비밀번호 (6자 이상)" />
+
+      <p id="authError" class="auth-error hidden"></p>
+
+      <div class="modal-actions">
+        <button id="authSubmit" class="btn btn-primary btn-small">로그인</button>
+        <button id="closeModal" class="btn btn-outline btn-small">취소</button>
+      </div>
+
+      <p class="helper-text">
+        <span id="authToggleText">아직 계정이 없나요?</span>
+        <button type="button" id="authToggleButton" class="modal-link">
+          회원가입으로 전환
+        </button>
+      </p>
+
+      <p class="helper-text helper-text-secondary">
+        회원가입이 되지 않을 경우, 사용 중인 학교 이메일 주소 또는 도메인(예: <strong>xxxx@학교이름.ac.kr</strong>)을
+        운영진 문의 메일로 보내주시면 등록해 드리겠습니다.<br />
+        예) <strong>hs.ac.kr, yonsei.ac.kr</strong> 등<br />
+        문의 메일: <strong>volleylink.help@example.com</strong>
+      </p>
+    </div>
+  </div>
+
+  <!-- 교류전 생성 모달 -->
+  <div id="matchModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <h2>새 교류전 만들기</h2>
+      <p class="modal-sub">상대 팀과 일정을 조율하기 위한 기본 정보를 입력하세요.</p>
+
+      <input id="matchTitleInput" class="input" type="text" placeholder="매치 제목 (예: 한신대 비상 vs 연세대 블루)" />
+      <input id="matchDateInput" class="input" type="text" placeholder="일시 (예: 12월 3일 토요일 18:00)" />
+      <input id="matchLocationInput" class="input" type="text" placeholder="장소 (예: 한신대 체육관)" />
+      <input id="matchLevelInput" class="input" type="text" placeholder="실력/목적 (예: 중상 · 친선/연습 경기)" />
+      <input id="matchNoteInput" class="input" type="text" placeholder="비고 (주차, 촬영 여부 등)" />
+
+      <p class="helper-text">
+        게임 방식/성별은 위 필터(9인제/6인제, 남/여/혼성)로 구분하고,<br />
+        나머지 세부 설명은 비고란에 적어주세요.
+      </p>
+
+      <p id="matchError" class="auth-error hidden"></p>
+
+      <div class="modal-actions">
+        <button id="matchSubmit" class="btn btn-primary btn-small">등록하기</button>
+        <button id="matchCancel" class="btn btn-outline btn-small">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    // 1) Firebase 설정
+    const firebaseConfig = {
+      apiKey: "AIzaSyC68iamTPIk6-0xHIEPJQMlzJoZCw6y9mg",
+      authDomain: "volleylink-7165f.firebaseapp.com",
+      projectId: "volleylink-7165f",
+      storageBucket: "volleylink-7165f.firebasestorage.app",
+      messagingSenderId: "891161836412",
+      appId: "1:891161836412:web:1696fc610cdf00a42442f9",
+      measurementId: "G-1CM3ZMSMTE"
+    };
+
+    // 2) 허용 도메인
+    const allowedDomains = [
+      // 서울권
+      "snu.ac.kr", "yonsei.ac.kr", "korea.ac.kr", "ewha.ac.kr", "sogang.ac.kr",
+      "hanyang.ac.kr", "cau.ac.kr", "duksung.ac.kr", "dgu.ac.kr", "uos.ac.kr",
+      "skku.edu", "sju.ac.kr", "sejong.ac.kr", "hansung.ac.kr", "hongik.ac.kr",
+      "sookmyung.ac.kr", "konkuk.ac.kr", "kookmin.ac.kr", "kw.ac.kr",
+      "sungshin.ac.kr",
+      // 인천·경기권
+      "inha.ac.kr", "inu.ac.kr", "gachon.ac.kr", "ajou.ac.kr", "kyonggi.ac.kr",
+      "hs.ac.kr", "dankook.ac.kr", "catholic.ac.kr", "su.ac.kr", "khu.ac.kr",
+      "eulji.ac.kr", "smu.ac.kr", "hknu.ac.kr",
+      // 천안·아산권
+      "koreatech.ac.kr", "cheonan.ac.kr", "kongju.ac.kr", "sch.ac.kr",
+      "hoseo.edu", "cjnu.ac.kr", "baewha.ac.kr"
+    ];
+
+    // Firebase 초기화
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // DOM
+    const authButton = document.getElementById("authButton");
+    const authModal = document.getElementById("authModal");
+    const closeModal = document.getElementById("closeModal");
+    const authSubmit = document.getElementById("authSubmit");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const authError = document.getElementById("authError");
+    const authModalTitle = document.getElementById("authModalTitle");
+    const authModalSub = document.getElementById("authModalSub");
+    const authToggleText = document.getElementById("authToggleText");
+    const authToggleButton = document.getElementById("authToggleButton");
+
+    let isSignupMode = false;
+
+    function openModal() {
+      authModal.classList.remove("hidden");
+      authError.classList.add("hidden");
+      authError.textContent = "";
+    }
+
+    function closeAuthModal() {
+      authModal.classList.add("hidden");
+    }
+
+    function updateAuthModeUI() {
+      if (isSignupMode) {
+        authModalTitle.textContent = "회원가입";
+        authModalSub.textContent = "새 계정을 만들고 팀 교류전을 관리해보세요.";
+        authSubmit.textContent = "회원가입";
+        authToggleText.textContent = "이미 계정이 있나요?";
+        authToggleButton.textContent = "로그인으로 전환";
+      } else {
+        authModalTitle.textContent = "로그인";
+        authModalSub.textContent = "이메일로 로그인하고 팀 라커룸을 관리해보세요.";
+        authSubmit.textContent = "로그인";
+        authToggleText.textContent = "아직 계정이 없나요?";
+        authToggleButton.textContent = "회원가입으로 전환";
+      }
+    }
+
+    authToggleButton.addEventListener("click", () => {
+      isSignupMode = !isSignupMode;
+      updateAuthModeUI();
+      authError.classList.add("hidden");
+      authError.textContent = "";
+    });
+
+    authButton.addEventListener("click", () => {
+      if (auth.currentUser) {
+        auth.signOut();
+      } else {
+        isSignupMode = false;
+        updateAuthModeUI();
+        openModal();
+      }
+    });
+
+    closeModal.addEventListener("click", closeAuthModal);
+
+    authSubmit.addEventListener("click", () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        authError.textContent = "이메일과 비밀번호를 모두 입력해주세요.";
+        authError.classList.remove("hidden");
+        return;
+      }
+
+      if (password.length < 6) {
+        authError.textContent = "비밀번호는 6자 이상이어야 합니다.";
+        authError.classList.remove("hidden");
+        return;
+      }
+
+      const emailParts = email.split("@");
+      if (emailParts.length !== 2) {
+        authError.textContent = "올바른 이메일 형식을 입력해주세요.";
+        authError.classList.remove("hidden");
+        return;
+      }
+      const emailDomain = emailParts[1];
+
+      authError.classList.add("hidden");
+      authError.textContent = "";
+
+      if (isSignupMode) {
+        // 도메인 체크
+        if (!allowedDomains.includes(emailDomain)) {
+          authError.innerHTML =
+            "해당 이메일 도메인은 현재 등록되어 있지 않습니다.<br>" +
+            "사용 중인 학교 계정 도메인(예: <strong>hs.ac.kr</strong>)을 운영진에게 보내주시면 추가 등록해 드릴게요.";
+          authError.classList.remove("hidden");
+          return;
+        }
+
+        // 회원가입
+        auth
+          .createUserWithEmailAndPassword(email, password)
+          .then((userCredential) => {
+            const user = userCredential.user;
+
+            db.collection("users").doc(user.uid).set(
+              {
+                email: user.email,
+                domain: emailDomain,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              },
+              { merge: true }
+            ).catch((e) => {
+              console.error("users 저장 에러(회원가입은 성공): ", e);
+            });
+
+            closeAuthModal();
+            emailInput.value = "";
+            passwordInput.value = "";
+          })
+          .catch((error) => {
+            console.error("SIGNUP ERROR =>", error);
+            let msg = "회원가입 실패: 잠시 후 다시 시도해주세요.";
+
+            if (error.code === "auth/email-already-in-use") {
+              msg = "이미 가입된 이메일입니다. 로그인으로 시도해 주세요.";
+            } else if (error.code === "auth/invalid-email") {
+              msg = "이메일 형식이 올바르지 않습니다. 학교 이메일 주소를 다시 확인해 주세요.";
+            } else if (error.code === "auth/weak-password") {
+              msg = "비밀번호가 너무 약합니다. 6자 이상으로 설정해 주세요.";
+            } else if (error.code === "auth/network-request-failed") {
+              msg = "네트워크 오류가 발생했습니다. 인터넷 연결을 확인해 주세요.";
+            } else if (error.code === "auth/operation-not-allowed") {
+              msg = "이메일/비밀번호 로그인 방식이 비활성화되어 있습니다. 콘솔 설정을 확인해 주세요.";
+            }
+
+            authError.textContent = msg;
+            authError.classList.remove("hidden");
+          });
+      } else {
+        // 로그인
+        auth
+          .signInWithEmailAndPassword(email, password)
+          .then(() => {
+            closeAuthModal();
+            emailInput.value = "";
+            passwordInput.value = "";
+          })
+          .catch((error) => {
+            console.error("LOGIN ERROR =>", error);
+            let msg = "로그인 실패: 이메일 또는 비밀번호를 확인해주세요.";
+
+            if (error.code === "auth/user-not-found") {
+              msg = "해당 이메일로 가입된 계정을 찾을 수 없습니다.";
+            } else if (error.code === "auth/wrong-password") {
+              msg = "비밀번호가 올바르지 않습니다.";
+            } else if (error.code === "auth/invalid-email") {
+              msg = "이메일 형식이 올바르지 않습니다.";
+            } else if (error.code === "auth/network-request-failed") {
+              msg = "네트워크 오류가 발생했습니다. 인터넷 연결을 확인해 주세요.";
+            }
+
+            authError.textContent = msg;
+            authError.classList.remove("hidden");
+          });
+      }
+    });
+
+    [emailInput, passwordInput].forEach((el) => {
+      el.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          authSubmit.click();
+        }
+      });
+    });
+
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        authButton.textContent = "로그아웃";
+        authButton.classList.remove("btn-outline");
+        authButton.classList.add("btn-secondary");
+      } else {
+        authButton.textContent = "로그인";
+        authButton.classList.remove("btn-secondary");
+        authButton.classList.add("btn-outline");
+      }
+    });
+
+    // 탭 전환
+    const tabButtons = document.querySelectorAll(".tab-nav__item");
+    const tabContents = document.querySelectorAll(".tab-content");
+
+    tabButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.tab;
+
+        tabButtons.forEach((b) =>
+          b.classList.remove("tab-nav__item--active")
+        );
+        btn.classList.add("tab-nav__item--active");
+
+        tabContents.forEach((c) => {
+          c.classList.toggle("tab-content--active", c.id === "tab-" + target);
+        });
+      });
+    });
+
+    // 교류전 생성/목록
+    const floatingCta = document.querySelector(".floating-cta");
+    const matchModal = document.getElementById("matchModal");
+    const matchTitleInput = document.getElementById("matchTitleInput");
+    const matchDateInput = document.getElementById("matchDateInput");
+    const matchLocationInput = document.getElementById("matchLocationInput");
+    const matchLevelInput = document.getElementById("matchLevelInput");
+    const matchNoteInput = document.getElementById("matchNoteInput");
+    const matchSubmit = document.getElementById("matchSubmit");
+    const matchCancel = document.getElementById("matchCancel");
+    const matchError = document.getElementById("matchError");
+    const matchList = document.getElementById("matchList");
+    const heroCreateBtn = document.getElementById("heroCreateBtn");
+
+    function openMatchModal() {
+      matchModal.classList.remove("hidden");
+      matchError.classList.add("hidden");
+      matchError.textContent = "";
+    }
+
+    function closeMatchModal() {
+      matchModal.classList.add("hidden");
+    }
+
+    floatingCta.addEventListener("click", () => {
+      if (!auth.currentUser) {
+        alert("교류전을 등록하려면 먼저 로그인 해주세요.");
+        return;
+      }
+      openMatchModal();
+    });
+
+    // 히어로 버튼도 같은 동작
+    heroCreateBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (!auth.currentUser) {
+        alert("교류전을 등록하려면 먼저 로그인 해주세요.");
+        return;
+      }
+      openMatchModal();
+    });
+
+    matchCancel.addEventListener("click", closeMatchModal);
+
+    matchSubmit.addEventListener("click", () => {
+      if (!auth.currentUser) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
+
+      const title = matchTitleInput.value.trim();
+      const dateText = matchDateInput.value.trim();
+      const location = matchLocationInput.value.trim();
+      const level = matchLevelInput.value.trim();
+      const note = matchNoteInput.value.trim();
+
+      if (!title || !dateText || !location) {
+        matchError.textContent = "제목, 일시, 장소는 필수 입력값입니다.";
+        matchError.classList.remove("hidden");
+        return;
+      }
+
+      matchError.classList.add("hidden");
+      matchError.textContent = "";
+
+      db.collection("matches")
+        .add({
+          title,
+          dateText,
+          location,
+          level,
+          note,
+          status: "모집 중",
+          gameType: "9인제/6인제 선택 예정",
+          gender: "남/여/혼성 선택 예정",
+          createdByUid: auth.currentUser.uid,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+          alert("교류전이 등록되었습니다.");
+          matchTitleInput.value = "";
+          matchDateInput.value = "";
+          matchLocationInput.value = "";
+          matchLevelInput.value = "";
+          matchNoteInput.value = "";
+          closeMatchModal();
+          loadMatches();
+        })
+        .catch((error) => {
+          console.error(error);
+          matchError.textContent =
+            "저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+          matchError.classList.remove("hidden");
+        });
+    });
+
+    function renderMatchCard(docId, data) {
+      const container = document.createElement("article");
+      container.className = "match-card";
+
+      container.innerHTML = `
+        <div class="match-card__header">
+          <div>
+            <div class="badge-row">
+              <span class="badge badge--green">${data.status || "모집 중"}</span>
+            </div>
+            <h3>${data.title || "제목 없음"}</h3>
+          </div>
+          <span class="match-level">${data.level || ""}</span>
+        </div>
+        <div class="match-card__body">
+          <div class="match-info-row">
+            <span class="match-label">일시</span>
+            <span class="match-value">${data.dateText || "-"}</span>
+          </div>
+          <div class="match-info-row">
+            <span class="match-label">장소</span>
+            <span class="match-value">${data.location || "-"}</span>
+          </div>
+          <div class="match-info-row">
+            <span class="match-label">비고</span>
+            <span class="match-value">${data.note || "-"}</span>
+          </div>
+        </div>
+        <div class="match-card__footer">
+          <button class="btn btn-outline btn-small">상세 보기</button>
+          <button class="btn btn-primary btn-small">매칭 지원하기</button>
+        </div>
+      `;
+
+      return container;
+    }
+
+    function loadMatches() {
+      if (!matchList) return;
+
+      matchList.innerHTML =
+        "<p class='helper-text'>교류전 목록을 불러오는 중...</p>";
+
+      db.collection("matches")
+        .orderBy("createdAt", "desc")
+        .limit(20)
+        .get()
+        .then((snapshot) => {
+          matchList.innerHTML = "";
+          if (snapshot.empty) {
+            matchList.innerHTML =
+              "<p class='helper-text'>현재 등록된 교류전이 없습니다. 첫 교류전을 등록해보세요!</p>";
+            return;
+          }
+
+          snapshot.forEach((doc) => {
+            const card = renderMatchCard(doc.id, doc.data());
+            matchList.appendChild(card);
+          });
+        })
+        .catch((error) => {
+          console.error(error);
+          matchList.innerHTML =
+            "<p class='helper-text'>목록을 불러오는 중 오류가 발생했습니다.</p>";
+        });
+    }
+
+    loadMatches();
+  </script>
 </body>
 </html>
