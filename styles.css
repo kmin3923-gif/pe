@@ -543,3 +543,10 @@ body {
     padding: 14px;
   }
 }
+
+/* 모달 안 안내 문구 2줄째 여백 조금 띄우기 */
+.helper-text-secondary {
+  margin-top: 4px;
+  font-size: 11px;
+}
+
