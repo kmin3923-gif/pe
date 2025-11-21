@@ -28,17 +28,18 @@
         <button class="btn btn-primary">내 팀 등록하기</button>
         <button class="btn btn-secondary">교류전 둘러보기</button>
       </div>
+
+      <!-- 오늘 올라온 교류전 · 용병 모집 리스트 (홈 중간 메인 영역) -->
       <section class="section-spacing">
-  <div class="section-header">
-    <h2 class="section-title">오늘 올라온 교류전 · 용병 모집</h2>
-    <a href="match-new.html" class="btn btn-primary btn-small">
-      + 모집 글 올리기
-    </a>
-  </div>
+        <div class="section-header">
+          <h2 class="section-title">오늘 올라온 교류전 · 용병 모집</h2>
+          <a href="#" id="heroCreateBtn" class="btn btn-primary btn-small">
+            + 모집 글 올리기
+          </a>
+        </div>
 
-  <div id="matchList"></div>
-</section>
-
+        <div id="matchList"></div>
+      </section>
     </section>
 
     <!-- 탭 네비게이션 -->
@@ -90,15 +91,7 @@
           placeholder="학교명 또는 동아리명을 검색해보세요 (예: 한신대 비상)"
         />
       </div>
-
-      <!-- 매치 카드 리스트 -->
-      <section class="section-spacing">
-        <div class="section-header">
-          <h2 class="section-title">오늘 모집 중인 교류전</h2>
-          <button class="link-button">전체 보기</button>
-        </div>
-        <div id="matchList"></div>
-      </section>
+      <!-- 이 아래에 매치 리스트는 히어로 쪽에서만 보여주도록 해서 제거 -->
     </section>
 
     <!-- 팀 라커룸 탭 -->
@@ -270,16 +263,16 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
   <script>
-    // 1) Firebase 설정: 여기 네 프로젝트 값으로 변경 필수!
+    // 1) Firebase 설정
     const firebaseConfig = {
-  apiKey: "AIzaSyC68iamTPIk6-0xHIEPJQMlzJoZCw6y9mg",
-  authDomain: "volleylink-7165f.firebaseapp.com",
-  projectId: "volleylink-7165f",
-  storageBucket: "volleylink-7165f.firebasestorage.app",
-  messagingSenderId: "891161836412",
-  appId: "1:891161836412:web:1696fc610cdf00a42442f9",
-  measurementId: "G-1CM3ZMSMTE"
-};
+      apiKey: "AIzaSyC68iamTPIk6-0xHIEPJQMlzJoZCw6y9mg",
+      authDomain: "volleylink-7165f.firebaseapp.com",
+      projectId: "volleylink-7165f",
+      storageBucket: "volleylink-7165f.firebasestorage.app",
+      messagingSenderId: "891161836412",
+      appId: "1:891161836412:web:1696fc610cdf00a42442f9",
+      measurementId: "G-1CM3ZMSMTE"
+    };
 
     // 2) 허용 도메인
     const allowedDomains = [
@@ -400,13 +393,12 @@
           return;
         }
 
-        // 회원가입 (Auth) – 여기서만 실패하면 에러로 처리
+        // 회원가입
         auth
           .createUserWithEmailAndPassword(email, password)
           .then((userCredential) => {
             const user = userCredential.user;
 
-            // users 컬렉션 저장은 실패해도 회원가입 자체는 성공 처리
             db.collection("users").doc(user.uid).set(
               {
                 email: user.email,
@@ -445,7 +437,7 @@
         // 로그인
         auth
           .signInWithEmailAndPassword(email, password)
-          .then((userCredential) => {
+          .then(() => {
             closeAuthModal();
             emailInput.value = "";
             passwordInput.value = "";
@@ -521,6 +513,7 @@
     const matchCancel = document.getElementById("matchCancel");
     const matchError = document.getElementById("matchError");
     const matchList = document.getElementById("matchList");
+    const heroCreateBtn = document.getElementById("heroCreateBtn");
 
     function openMatchModal() {
       matchModal.classList.remove("hidden");
@@ -533,6 +526,16 @@
     }
 
     floatingCta.addEventListener("click", () => {
+      if (!auth.currentUser) {
+        alert("교류전을 등록하려면 먼저 로그인 해주세요.");
+        return;
+      }
+      openMatchModal();
+    });
+
+    // 히어로 버튼도 같은 동작
+    heroCreateBtn.addEventListener("click", (e) => {
+      e.preventDefault();
       if (!auth.currentUser) {
         alert("교류전을 등록하려면 먼저 로그인 해주세요.");
         return;
