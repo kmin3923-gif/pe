@@ -1,53 +1,287 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>대학 스포츠 동아리 플랫폼</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <title>VolleyLink - 대학 배구 교류전 플랫폼</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <nav>
-    <a href="index.html">홈</a>
-    <a href="match.html">매칭 둘러보기</a>
-    <a href="team.html">우리팀</a>
-    <a href="profile.html">내 프로필</a>
-    <a href="match-new.html">매칭 등록하기</a>
-  </nav>
-
-  <section class="hero">
-    <h1>전국 대학 배구 동아리 교류전, 이제 믿고 매칭하자!</h1>
-    <p>학교 인증된 동아리끼리만 매칭·용병·경기 기록을 하나의 플랫폼에서.</p>
-    <p><a href="signup.html">학교 이메일로 시작하기</a> | <a href="login.html">로그인하기</a></p>
-  </section>
-
-  <section class="features">
-    <h2>주요 기능</h2>
-    <div class="feature">
-      <div class="icon">⚖️</div>
-      <div><strong>공정한 매칭</strong><br>실력 등급/규모 기반 자동 매칭</div>
+  <!-- 상단 바 -->
+  <header class="top-bar">
+    <div class="top-bar__left">
+      <span class="logo">VolleyLink</span>
+      <span class="logo-sub">대학 배구 교류전</span>
     </div>
-    <div class="feature">
-      <div class="icon">📊</div>
-      <div><strong>체계적인 기록</strong><br>팀 전적, 상대 전적 자동 저장</div>
-    </div>
-    <div class="feature">
-      <div class="icon">🎓</div>
-      <div><strong>대학생 인증</strong><br>ac.kr 이메일로 인증된 팀만 입장</div>
-    </div>
-  </section>
+    <button class="btn btn-outline btn-small">로그인</button>
+  </header>
 
-  <section class="steps">
-    <h2>어떻게 동작하나요?</h2>
-    <ol>
-      <li>학교 이메일로 가입</li>
-      <li>팀 등록 &amp; 승인</li>
-      <li>매칭 카드 등록/신청</li>
-      <li>경기 후 결과 입력 &amp; 전적 확인</li>
-    </ol>
-  </section>
+  <main class="page">
+    <!-- 히어로 영역 -->
+    <section class="hero">
+      <h1>주장님, 오늘은<br>어디로 교류전 가실래요?</h1>
+      <p>
+        전국 대학 배구 동아리 교류전을 한 곳에서 관리하고,<br>
+        실력·지역·성별에 맞는 팀과 안전하게 매칭해요.
+      </p>
+      <div class="hero-cta-row">
+        <button class="btn btn-primary">내 팀 등록하기</button>
+        <button class="btn btn-secondary">교류전 둘러보기</button>
+      </div>
+    </section>
 
-  <footer>
-    &copy; 2025 대학 스포츠 동아리 플랫폼
-  </footer>
+    <!-- 탭 네비게이션 -->
+    <nav class="tab-nav">
+      <button class="tab-nav__item tab-nav__item--active" data-tab="matches">매치 찾기</button>
+      <button class="tab-nav__item" data-tab="locker">팀 라커룸</button>
+      <button class="tab-nav__item" data-tab="ranking">랭킹</button>
+    </nav>
+
+    <!-- 매치 찾기 탭 -->
+    <section id="tab-matches" class="tab-content tab-content--active">
+      <!-- 필터 영역 -->
+      <div class="card">
+        <h2 class="section-title">매치 조건 선택</h2>
+        <div class="filter-row">
+          <div class="filter-group">
+            <label class="filter-label">게임 방식</label>
+            <div class="chip-row">
+              <button class="chip chip--active">9인제</button>
+              <button class="chip">6인제</button>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">성별</label>
+            <div class="chip-row">
+              <button class="chip chip--active">남자</button>
+              <button class="chip">여자</button>
+              <button class="chip">혼성</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-row">
+          <div class="filter-group full">
+            <label class="filter-label">지역</label>
+            <select class="select">
+              <option>전체 지역</option>
+              <option>서울권</option>
+              <option>경기/인천</option>
+              <option>충청권</option>
+              <option>영남권</option>
+              <option>호남/제주</option>
+            </select>
+          </div>
+        </div>
+
+        <input
+          class="input"
+          type="text"
+          placeholder="학교명 또는 동아리명을 검색해보세요 (예: 한신대 비상)"
+        />
+      </div>
+
+      <!-- 매치 카드 리스트 -->
+      <section class="section-spacing">
+        <div class="section-header">
+          <h2 class="section-title">오늘 모집 중인 교류전</h2>
+          <button class="link-button">전체 보기</button>
+        </div>
+
+        <article class="match-card">
+          <div class="match-card__header">
+            <div>
+              <div class="badge-row">
+                <span class="badge badge--green">모집 중</span>
+                <span class="badge">9인제</span>
+                <span class="badge">남자부</span>
+              </div>
+              <h3>한신대 비상 vs 연세대 블루</h3>
+            </div>
+            <span class="match-level">중상 · 친선/연습 가능</span>
+          </div>
+
+          <div class="match-card__body">
+            <div class="match-info-row">
+              <span class="match-label">일시</span>
+              <span class="match-value">11월 24일 (금) 18:00</span>
+            </div>
+            <div class="match-info-row">
+              <span class="match-label">장소</span>
+              <span class="match-value">한신대학교 체육관</span>
+            </div>
+            <div class="match-info-row">
+              <span class="match-label">비고</span>
+              <span class="match-value">주차 협소 · 경기 영상 촬영 예정</span>
+            </div>
+          </div>
+
+          <div class="match-card__footer">
+            <button class="btn btn-outline btn-small">상세 보기</button>
+            <button class="btn btn-primary btn-small">매칭 지원하기</button>
+          </div>
+        </article>
+
+        <!-- 필요하면 매치 카드 복붙해서 여러 개 추가 -->
+        <article class="match-card">
+          <div class="match-card__header">
+            <div>
+              <div class="badge-row">
+                <span class="badge badge--green">모집 중</span>
+                <span class="badge">6인제</span>
+                <span class="badge">혼성</span>
+              </div>
+              <h3>고려대 RED vs 한체대 KNSU</h3>
+            </div>
+            <span class="match-level">상 · 공식전 연습</span>
+          </div>
+
+          <div class="match-card__body">
+            <div class="match-info-row">
+              <span class="match-label">일시</span>
+              <span class="match-value">11월 30일 (토) 14:00</span>
+            </div>
+            <div class="match-info-row">
+              <span class="match-label">장소</span>
+              <span class="match-value">고려대학교 화정체육관</span>
+            </div>
+            <div class="match-info-row">
+              <span class="match-label">비고</span>
+              <span class="match-value">심판 가능 · 볼 지참</span>
+            </div>
+          </div>
+
+          <div class="match-card__footer">
+            <button class="btn btn-outline btn-small">상세 보기</button>
+            <button class="btn btn-primary btn-small">매칭 지원하기</button>
+          </div>
+        </article>
+      </section>
+    </section>
+
+    <!-- 팀 라커룸 탭 -->
+    <section id="tab-locker" class="tab-content">
+      <section class="card">
+        <h2 class="section-title">라커룸 - 한신대 비상</h2>
+        <p class="subtitle">Hanshin Univ. Bisang</p>
+
+        <div class="stats-row">
+          <div class="stat-box">
+            <span class="stat-label">경기수</span>
+            <span class="stat-value">25</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">승리</span>
+            <span class="stat-value">22</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">승률</span>
+            <span class="stat-value stat-value--green">88%</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-header">
+          <h3 class="section-title small">선수 명단</h3>
+          <button class="btn btn-outline btn-small">새 선수 등록</button>
+        </div>
+
+        <div class="position-row">
+          <span class="position-chip">L</span>
+          <span class="position-chip">S</span>
+          <span class="position-chip">OH</span>
+          <span class="position-chip">OP</span>
+          <span class="position-chip">MB</span>
+        </div>
+
+        <p class="helper-text">
+          실제 서비스에서는 포지션별로 선수 이름과 학번, 주포지션/부포지션을 등록할 수 있어요.
+        </p>
+      </section>
+    </section>
+
+    <!-- 랭킹 탭 -->
+    <section id="tab-ranking" class="tab-content">
+      <section class="card">
+        <div class="section-header">
+          <h2 class="section-title">실시간 랭킹</h2>
+          <span class="subtitle">승률 기준 · 최소 10경기 이상 팀</span>
+        </div>
+
+        <ol class="ranking-list">
+          <li class="ranking-item">
+            <span class="ranking-pos">1</span>
+            <div class="ranking-main">
+              <span class="ranking-team">한체대 KNSU</span>
+              <span class="ranking-sub">서울 · 남자부 9인제</span>
+            </div>
+            <span class="ranking-rate">92%</span>
+          </li>
+          <li class="ranking-item">
+            <span class="ranking-pos">2</span>
+            <div class="ranking-main">
+              <span class="ranking-team">한신대 비상</span>
+              <span class="ranking-sub">경기 · 혼성 9인제</span>
+            </div>
+            <span class="ranking-rate">88%</span>
+          </li>
+          <li class="ranking-item">
+            <span class="ranking-pos">3</span>
+            <div class="ranking-main">
+              <span class="ranking-team">연세대 배구부</span>
+              <span class="ranking-sub">서울 · 남자부 6인제</span>
+            </div>
+            <span class="ranking-rate">85%</span>
+          </li>
+          <li class="ranking-item">
+            <span class="ranking-pos">4</span>
+            <div class="ranking-main">
+              <span class="ranking-team">서울대학교</span>
+              <span class="ranking-sub">서울 · 혼성 9인제</span>
+            </div>
+            <span class="ranking-rate">70%</span>
+          </li>
+          <li class="ranking-item">
+            <span class="ranking-pos">5</span>
+            <div class="ranking-main">
+              <span class="ranking-team">고려대학교</span>
+              <span class="ranking-sub">서울 · 남자부 6인제</span>
+            </div>
+            <span class="ranking-rate">60%</span>
+          </li>
+        </ol>
+      </section>
+    </section>
+  </main>
+
+  <!-- 항상 보이는 플로팅 CTA -->
+  <button class="floating-cta">
+    + 새 교류전 만들기
+  </button>
+
+  <!-- 탭 전환용 아주 간단한 JS (없어도 사이트는 뜸) -->
+  <script>
+    const tabButtons = document.querySelectorAll(".tab-nav__item");
+    const tabContents = document.querySelectorAll(".tab-content");
+
+    tabButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.tab;
+
+        tabButtons.forEach((b) => b.classList.remove("tab-nav__item--active"));
+        btn.classList.add("tab-nav__item--active");
+
+        tabContents.forEach((c) => {
+          c.classList.toggle(
+            "tab-content--active",
+            c.id === "tab-" + target
+          );
+        });
+      });
+    });
+  </script>
 </body>
+</html>
+
 </html>
