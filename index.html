@@ -69,9 +69,8 @@
               <option>전체 지역</option>
               <option>서울권</option>
               <option>경기/인천</option>
-              <option>충청권</option>
-              <option>영남권</option>
-              <option>호남/제주</option>
+              <option>충청/천안권</option>
+              <option>기타 지역</option>
             </select>
           </div>
         </div>
@@ -261,25 +260,37 @@
     + 새 교류전 만들기
   </button>
 
-  <!-- 🔒 로그인 모달 -->
+  <!-- 🔒 로그인/회원가입 모달 -->
   <div id="authModal" class="modal hidden">
     <div class="modal-backdrop"></div>
     <div class="modal-content">
-      <h2>로그인</h2>
-      <p class="modal-sub">이메일로 로그인하고 팀 라커룸을 관리해보세요.</p>
+      <h2 id="authModalTitle">로그인</h2>
+      <p id="authModalSub" class="modal-sub">
+        이메일로 로그인하고 팀 라커룸을 관리해보세요.
+      </p>
 
-      <input id="emailInput" class="input" type="email" placeholder="이메일 주소" />
-      <input id="passwordInput" class="input" type="password" placeholder="비밀번호" />
+      <input id="emailInput" class="input" type="email" placeholder="대학 이메일 주소" />
+      <input id="passwordInput" class="input" type="password" placeholder="비밀번호 (6자 이상)" />
 
       <p id="authError" class="auth-error hidden"></p>
 
       <div class="modal-actions">
-        <button id="loginSubmit" class="btn btn-primary btn-small">로그인</button>
+        <button id="authSubmit" class="btn btn-primary btn-small">로그인</button>
         <button id="closeModal" class="btn btn-outline btn-small">취소</button>
       </div>
 
       <p class="helper-text">
-        테스트용 계정은 Firebase 콘솔 &gt; Authentication에서 이메일/비밀번호를 추가해 만들 수 있어요.
+        <span id="authToggleText">아직 계정이 없나요?</span>
+        <button type="button" id="authToggleButton" class="modal-link">
+          회원가입으로 전환
+        </button>
+      </p>
+
+      <!-- 👉 여기 안내 문구: 도메인 안 맞아서 가입 안 될 때 안내 -->
+      <p class="helper-text helper-text-secondary">
+        회원가입이 되지 않을 경우, 사용 중인 학교 계정 도메인(예: <strong>xxxx@학교이름.ac.kr</strong>)을
+        운영진에게 보내주시면 등록해 드리겠습니다.<br />
+        예) <strong>hs.ac.kr, yonsei.ac.kr</strong> 등
       </p>
     </div>
   </div>
@@ -290,29 +301,54 @@
 
   <!-- 🔧 메인 스크립트 -->
   <script>
-    // 1) Firebase 설정 (너 콘솔에 나온 값 그대로 사용)
+    // 1) Firebase 설정 (네 콘솔 값 넣기)
     const firebaseConfig = {
-      apiKey: "AIzaSyC68iamTPlK6-0xHIEPJQMLzJoZCw6y9mg",
-      authDomain: "volleylink-7165f.firebaseapp.com",
-      projectId: "volleylink-7165f",
-      storageBucket: "volleylink-7165f.firebasestorage.app",
-      messagingSenderId: "891161836412",
-      appId: "1:891161836412:web:1696fc610dcf00a24424f9",
-      measurementId: "G-1CM3ZMSMTE"
+      apiKey: "여기에_네_apiKey",
+      authDomain: "여기에_네_authDomain",
+      projectId: "여기에_네_projectId",
+      storageBucket: "여기에_네_storageBucket",
+      messagingSenderId: "여기에_네_messagingSenderId",
+      appId: "여기에_네_appId",
+      measurementId: "여기에_네_measurementId"
     };
 
-    // 2) Firebase 초기화
+    // 2) 허용할 학교 이메일 도메인 목록 (서울/수도권/천안권 1차 버전)
+    const allowedDomains = [
+      // 서울권
+      "snu.ac.kr", "yonsei.ac.kr", "korea.ac.kr", "ewha.ac.kr", "sogang.ac.kr",
+      "hanyang.ac.kr", "cau.ac.kr", "duksung.ac.kr", "dgu.ac.kr", "uos.ac.kr",
+      "skku.edu", "sju.ac.kr", "sejong.ac.kr", "hansung.ac.kr", "hongik.ac.kr",
+      "sookmyung.ac.kr", "konkuk.ac.kr", "kookmin.ac.kr", "kw.ac.kr",
+      "sungshin.ac.kr",
+
+      // 인천·경기권
+      "inha.ac.kr", "inu.ac.kr", "gachon.ac.kr", "ajou.ac.kr", "kyonggi.ac.kr",
+      "hs.ac.kr", "dankook.ac.kr", "catholic.ac.kr", "su.ac.kr", "khu.ac.kr",
+      "eulji.ac.kr", "smu.ac.kr", "hknu.ac.kr",
+
+      // 천안·아산권
+      "koreatech.ac.kr", "cheonan.ac.kr", "kongju.ac.kr", "sch.ac.kr",
+      "hoseo.edu", "cjnu.ac.kr", "baewha.ac.kr"
+    ];
+
+    // 3) Firebase 초기화
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // 3) 로그인 관련 DOM 요소
+    // 4) 로그인/회원가입 관련 DOM
     const authButton = document.getElementById("authButton");
     const authModal = document.getElementById("authModal");
     const closeModal = document.getElementById("closeModal");
-    const loginSubmit = document.getElementById("loginSubmit");
+    const authSubmit = document.getElementById("authSubmit");
     const emailInput = document.getElementById("emailInput");
     const passwordInput = document.getElementById("passwordInput");
     const authError = document.getElementById("authError");
+    const authModalTitle = document.getElementById("authModalTitle");
+    const authModalSub = document.getElementById("authModalSub");
+    const authToggleText = document.getElementById("authToggleText");
+    const authToggleButton = document.getElementById("authToggleButton");
+
+    let isSignupMode = false; // false면 로그인, true면 회원가입
 
     function openModal() {
       authModal.classList.remove("hidden");
@@ -324,13 +360,39 @@
       authModal.classList.add("hidden");
     }
 
-    // 로그인 버튼 클릭 시
+    function updateAuthModeUI() {
+      if (isSignupMode) {
+        authModalTitle.textContent = "회원가입";
+        authModalSub.textContent = "새 계정을 만들고 팀 교류전을 관리해보세요.";
+        authSubmit.textContent = "회원가입";
+        authToggleText.textContent = "이미 계정이 있나요?";
+        authToggleButton.textContent = "로그인으로 전환";
+      } else {
+        authModalTitle.textContent = "로그인";
+        authModalSub.textContent = "이메일로 로그인하고 팀 라커룸을 관리해보세요.";
+        authSubmit.textContent = "로그인";
+        authToggleText.textContent = "아직 계정이 없나요?";
+        authToggleButton.textContent = "회원가입으로 전환";
+      }
+    }
+
+    // 모드 전환 버튼
+    authToggleButton.addEventListener("click", () => {
+      isSignupMode = !isSignupMode;
+      updateAuthModeUI();
+      authError.classList.add("hidden");
+      authError.textContent = "";
+    });
+
+    // 상단 로그인 버튼 클릭 시
     authButton.addEventListener("click", () => {
       if (auth.currentUser) {
         // 이미 로그인 상태면 → 로그아웃
         auth.signOut();
       } else {
-        // 로그아웃 상태면 → 로그인 모달 열기
+        // 로그아웃 상태면 → 로그인/회원가입 모달 열기
+        isSignupMode = false; // 기본은 로그인
+        updateAuthModeUI();
         openModal();
       }
     });
@@ -338,8 +400,8 @@
     // 모달 닫기
     closeModal.addEventListener("click", closeAuthModal);
 
-    // 로그인 시도
-    loginSubmit.addEventListener("click", () => {
+    // 로그인/회원가입 시도
+    authSubmit.addEventListener("click", () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value;
 
@@ -349,30 +411,74 @@
         return;
       }
 
+      if (password.length < 6) {
+        authError.textContent = "비밀번호는 6자 이상이어야 합니다.";
+        authError.classList.remove("hidden");
+        return;
+      }
+
+      // 이메일 형식 & 도메인 체크 (회원가입 모드일 때만)
+      const emailParts = email.split("@");
+      if (emailParts.length !== 2) {
+        authError.textContent = "올바른 이메일 형식을 입력해주세요.";
+        authError.classList.remove("hidden");
+        return;
+      }
+      const emailDomain = emailParts[1];
+
+      if (isSignupMode) {
+        if (!allowedDomains.includes(emailDomain)) {
+          authError.innerHTML =
+            "해당 이메일 도메인은 현재 등록되어 있지 않습니다.<br>" +
+            "사용 중인 학교 계정 도메인(예: <strong>hs.ac.kr</strong>)을 운영진에게 보내주시면 추가 등록해 드릴게요.";
+          authError.classList.remove("hidden");
+          return;
+        }
+      }
+
       authError.classList.add("hidden");
       authError.textContent = "";
 
-      auth
-        .signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          console.log("로그인 성공:", userCredential.user.email);
-          closeAuthModal();
-          emailInput.value = "";
-          passwordInput.value = "";
-        })
-        .catch((error) => {
-          console.error(error);
-          authError.textContent =
-            "로그인 실패: 이메일 또는 비밀번호를 확인해주세요.";
-          authError.classList.remove("hidden");
-        });
+      if (isSignupMode) {
+        // 회원가입
+        auth
+          .createUserWithEmailAndPassword(email, password)
+          .then((userCredential) => {
+            console.log("회원가입 & 자동 로그인 성공:", userCredential.user.email);
+            closeAuthModal();
+            emailInput.value = "";
+            passwordInput.value = "";
+          })
+          .catch((error) => {
+            console.error(error);
+            authError.textContent =
+              "회원가입 실패: 이미 사용 중인 이메일이거나 형식이 올바르지 않습니다.";
+            authError.classList.remove("hidden");
+          });
+      } else {
+        // 로그인
+        auth
+          .signInWithEmailAndPassword(email, password)
+          .then((userCredential) => {
+            console.log("로그인 성공:", userCredential.user.email);
+            closeAuthModal();
+            emailInput.value = "";
+            passwordInput.value = "";
+          })
+          .catch((error) => {
+            console.error(error);
+            authError.textContent =
+              "로그인 실패: 이메일 또는 비밀번호를 확인해주세요.";
+            authError.classList.remove("hidden");
+          });
+      }
     });
 
-    // 엔터키로도 로그인
+    // 엔터키로도 동작
     [emailInput, passwordInput].forEach((el) => {
       el.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
-          loginSubmit.click();
+          authSubmit.click();
         }
       });
     });
@@ -390,7 +496,7 @@
       }
     });
 
-    // 4) 탭 전환 로직
+    // 탭 전환 로직
     const tabButtons = document.querySelectorAll(".tab-nav__item");
     const tabContents = document.querySelectorAll(".tab-content");
 
