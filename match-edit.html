@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>모집글 수정하기 - VolleyLink</title>
+  <title>모집글 상세 보기 - VolleyLink</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -11,89 +11,23 @@
   <header class="top-bar">
     <div class="top-bar__left">
       <a href="index.html" class="logo">VolleyLink</a>
-      <span class="logo-sub">모집글 수정</span>
+      <span class="logo-sub">상세 정보</span>
     </div>
   </header>
 
-  <main class="page">
-    <section class="card" id="editContainer">
-      <h1 class="section-title">모집글 수정하기</h1>
-      <p class="subtitle">작성했던 교류전/용병 모집 글을 수정할 수 있어요.</p>
-
-      <!-- 유형 선택 -->
-      <div class="section-spacing">
-        <label class="filter-label">모집 종류</label>
-        <div class="chip-row" id="postTypeSelector">
-          <button class="chip chip--active" data-type="교류전">교류전 모집</button>
-          <button class="chip" data-type="용병">용병 모집</button>
-        </div>
-      </div>
-
-      <!-- 제목 -->
-      <div class="section-spacing">
-        <input
-          id="titleInput"
-          class="input"
-          type="text"
-          placeholder="제목 (예: 한신대 비상 vs 연세대 교류전 상대 구합니다)"
-        />
-      </div>
-
-      <!-- 일시 / 장소 / 실력 -->
-      <div class="section-spacing">
-        <input
-          id="dateInput"
-          class="input"
-          type="text"
-          placeholder="일시 (예: 12월 3일 토요일 18:00)"
-          style="margin-bottom:8px;"
-        />
-        <input
-          id="locationInput"
-          class="input"
-          type="text"
-          placeholder="장소 (예: 한신대 체육관 / 상대 학교 방문 등)"
-          style="margin-bottom:8px;"
-        />
-        <input
-          id="levelInput"
-          class="input"
-          type="text"
-          placeholder="실력/목적 (예: 중상 · 친선/연습 경기)"
-        />
-      </div>
-
-      <!-- 상세 설명 -->
-      <div class="section-spacing">
-        <textarea
-          id="noteInput"
-          class="input"
-          style="min-height:120px;"
-          placeholder="상대 조건, 포지션, 용병 조건, 경기 방식, 준비물, 주차/촬영 가능 여부 등 상세하게 적어주세요."
-        ></textarea>
-      </div>
-
-      <p id="editError" class="auth-error hidden"></p>
-
-      <div class="modal-actions" style="margin-top:12px;">
-        <button id="saveButton" class="btn btn-primary btn-small">수정 내용 저장</button>
-        <button id="cancelButton" class="btn btn-outline btn-small">돌아가기</button>
-      </div>
-
-      <p class="helper-text">
-        이 모집글은 작성자 본인만 수정할 수 있습니다.<br />
-        수정 후에는 상세 페이지에서 변경 내용을 바로 확인할 수 있어요.
-      </p>
-    </section>
+  <main class="page" id="detailContainer">
+    <p>불러오는 중...</p>
   </main>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
   <script>
-    // 🔥 너 index.html에서 쓰는 config랑 동일하게 맞춰둠
+    /* -------------------------
+       Firebase 초기화
+    -------------------------- */
     const firebaseConfig = {
       apiKey: "AIzaSyC68iamTPIk6-0xHIEPJQMlzJoZCw6y9mg",
       authDomain: "volleylink-7165f.firebaseapp.com",
@@ -108,162 +42,120 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    const params = new URLSearchParams(window.location.search);
+    /* -------------------------
+       URL 파라미터 (문서 ID)
+    -------------------------- */
+    const params = new URLSearchParams(location.search);
     const matchId = params.get("id");
 
-    const editContainer = document.getElementById("editContainer");
-    const postTypeSelector = document.getElementById("postTypeSelector");
-    const titleInput = document.getElementById("titleInput");
-    const dateInput = document.getElementById("dateInput");
-    const locationInput = document.getElementById("locationInput");
-    const levelInput = document.getElementById("levelInput");
-    const noteInput = document.getElementById("noteInput");
-    const editError = document.getElementById("editError");
-    const saveButton = document.getElementById("saveButton");
-    const cancelButton = document.getElementById("cancelButton");
-
+    const detail = document.getElementById("detailContainer");
     let currentUser = null;
-    let currentPostType = "교류전";
-    let originalDoc = null;
 
-    function setError(msg) {
-      editError.textContent = msg;
-      editError.classList.remove("hidden");
-    }
-
-    function clearError() {
-      editError.textContent = "";
-      editError.classList.add("hidden");
-    }
-
-    // 모집 종류 선택
-    postTypeSelector.querySelectorAll(".chip").forEach((chip) => {
-      chip.addEventListener("click", () => {
-        postTypeSelector.querySelectorAll(".chip").forEach((c) =>
-          c.classList.remove("chip--active")
-        );
-        chip.classList.add("chip--active");
-        currentPostType = chip.dataset.type;
-      });
-    });
-
-    // 뒤로가기
-    cancelButton.addEventListener("click", () => {
-      if (history.length > 1) {
-        history.back();
-      } else {
-        window.location.href = "index.html";
-      }
-    });
-
-    // 로그인 확인 후 문서 로드
+    /* -------------------------
+       로그인 감지 후 로딩 시작
+    -------------------------- */
     auth.onAuthStateChanged((user) => {
-      if (!user) {
-        alert("로그인 후 이용 가능합니다.");
-        window.location.href = "index.html";
-        return;
-      }
       currentUser = user;
+      loadDetail();
+    });
 
+    /* -------------------------
+       데이터 불러오기
+    -------------------------- */
+    function loadDetail() {
       if (!matchId) {
-        setError("잘못된 접근입니다. 모집글 ID가 없습니다.");
+        detail.innerHTML = "<p>잘못된 접근입니다.</p>";
         return;
       }
 
-      loadMatch();
-    });
+      db.collection("matches").doc(matchId).get().then((doc) => {
+        if (!doc.exists) {
+          detail.innerHTML = "<p>존재하지 않는 모집글입니다.</p>";
+          return;
+        }
 
-    function loadMatch() {
-      db.collection("matches")
-        .doc(matchId)
-        .get()
-        .then((doc) => {
-          if (!doc.exists) {
-            setError("존재하지 않는 모집글입니다.");
-            return;
-          }
+        const d = doc.data();
+        const isOwner = currentUser && d.createdByUid === currentUser.uid;
 
-          originalDoc = doc;
-          const data = doc.data();
+        detail.innerHTML = `
+          <section class="card">
+            <h2 class="section-title">${d.title}</h2>
+            <p class="subtitle">${d.postType || "교류전"}</p>
 
-          // 작성자 체크
-          if (data.createdByUid && data.createdByUid !== currentUser.uid) {
-            setError("작성자만 이 모집글을 수정할 수 있습니다.");
-            disableForm();
-          }
+            <div class="section-spacing">
+              <p><strong>일시:</strong> ${d.dateText || "-"}</p>
+              <p><strong>장소:</strong> ${d.location || "-"}</p>
+              <p><strong>실력/목적:</strong> ${d.level || "-"}</p>
+            </div>
 
-          // 폼 값 채우기 (기존 필드와 맞춤)
-          const postType = data.postType || "교류전";
-          currentPostType = postType;
+            <div class="section-spacing">
+              <p><strong>상세 설명</strong></p>
+              <p style="white-space:pre-line; margin-top:6px;">${d.note || "-"}</p>
+            </div>
 
-          // 유형 버튼 UI 반영
-          postTypeSelector.querySelectorAll(".chip").forEach((chip) => {
-            chip.classList.toggle("chip--active", chip.dataset.type === postType);
-          });
+            <div class="divider"></div>
 
-          titleInput.value = data.title || "";
-          dateInput.value = data.dateText || "";
-          locationInput.value = data.location || "";
-          levelInput.value = data.level || "";
-          noteInput.value = data.note || "";
-        })
-        .catch((error) => {
-          console.error(error);
-          setError("모집글 정보를 불러오는 중 오류가 발생했습니다.");
-        });
+            <div style="display:flex; gap:10px; margin-top:14px;">
+              <button class="btn btn-primary" id="applyBtn">매칭 지원하기</button>
+
+              ${isOwner ? `
+                <button class="btn btn-secondary" id="editBtn">수정하기</button>
+                <button class="btn btn-outline" id="deleteBtn">삭제하기</button>
+              ` : ""}
+            </div>
+          </section>
+        `;
+
+        /* -------------------------
+            버튼 기능 연결
+        -------------------------- */
+        document.getElementById("applyBtn").onclick = () =>
+          handleApply(d, matchId);
+
+        if (isOwner) {
+          document.getElementById("editBtn").onclick = () =>
+            location.href = "match-edit.html?id=" + matchId;
+
+          document.getElementById("deleteBtn").onclick = () =>
+            handleDelete(matchId);
+        }
+      });
     }
 
-    function disableForm() {
-      [titleInput, dateInput, locationInput, levelInput, noteInput, saveButton].forEach(
-        (el) => (el.disabled = true)
-      );
-    }
-
-    // 저장 버튼
-    saveButton.addEventListener("click", () => {
-      clearError();
-
-      if (!originalDoc) {
-        setError("모집글 정보를 아직 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
+    /* -------------------------
+       매칭 지원 기능
+    -------------------------- */
+    function handleApply(data, id) {
+      if (!currentUser) {
+        alert("로그인이 필요합니다.");
         return;
       }
-
-      const title = titleInput.value.trim();
-      const dateText = dateInput.value.trim();
-      const location = locationInput.value.trim();
-      const level = levelInput.value.trim();
-      const note = noteInput.value.trim();
-
-      if (!title || !dateText || !location) {
-        setError("제목, 일시, 장소는 필수 입력값입니다.");
-        return;
-      }
-
-      saveButton.disabled = true;
-      saveButton.textContent = "저장 중...";
 
       db.collection("matches")
-        .doc(matchId)
-        .update({
-          postType: currentPostType,
-          title,
-          dateText,
-          location,
-          level,
-          note,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        .doc(id)
+        .collection("applications")
+        .add({
+          uid: currentUser.uid,
+          email: currentUser.email,
+          appliedAt: firebase.firestore.FieldValue.serverTimestamp()
         })
+        .then(() => alert("지원이 완료되었습니다!"));
+    }
+
+    /* -------------------------
+       삭제 기능
+    -------------------------- */
+    function handleDelete(id) {
+      if (!confirm("정말 삭제하시겠습니까?")) return;
+
+      db.collection("matches")
+        .doc(id)
+        .delete()
         .then(() => {
-          alert("수정이 완료되었습니다.");
-          window.location.href = "match-detail.html?id=" + matchId;
-        })
-        .catch((error) => {
-          console.error(error);
-          setError("저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
-          saveButton.disabled = false;
-          saveButton.textContent = "수정 내용 저장";
+          alert("삭제되었습니다.");
+          location.href = "index.html";
         });
-    });
+    }
   </script>
 </body>
 </html>
