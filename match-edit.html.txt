@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>모집글 수정하기 - VolleyLink</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- 상단 바 -->
+  <header class="top-bar">
+    <div class="top-bar__left">
+      <a href="index.html" class="logo">VolleyLink</a>
+      <span class="logo-sub">모집글 수정</span>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="card" id="editContainer">
+      <h1 class="section-title">모집글 수정하기</h1>
+      <p class="subtitle">작성했던 교류전/용병 모집 글을 수정할 수 있어요.</p>
+
+      <!-- 유형 선택 -->
+      <div class="section-spacing">
+        <label class="filter-label">모집 종류</label>
+        <div class="chip-row" id="postTypeSelector">
+          <button class="chip chip--active" data-type="교류전">교류전 모집</button>
+          <button class="chip" data-type="용병">용병 모집</button>
+        </div>
+      </div>
+
+      <!-- 제목 -->
+      <div class="section-spacing">
+        <input
+          id="titleInput"
+          class="input"
+          type="text"
+          placeholder="제목 (예: 한신대 비상 vs 연세대 교류전 상대 구합니다)"
+        />
+      </div>
+
+      <!-- 일시 / 장소 / 실력 -->
+      <div class="section-spacing">
+        <input
+          id="dateInput"
+          class="input"
+          type="text"
+          placeholder="일시 (예: 12월 3일 토요일 18:00)"
+          style="margin-bottom:8px;"
+        />
+        <input
+          id="locationInput"
+          class="input"
+          type="text"
+          placeholder="장소 (예: 한신대 체육관 / 상대 학교 방문 등)"
+          style="margin-bottom:8px;"
+        />
+        <input
+          id="levelInput"
+          class="input"
+          type="text"
+          placeholder="실력/목적 (예: 중상 · 친선/연습 경기)"
+        />
+      </div>
+
+      <!-- 상세 설명 -->
+      <div class="section-spacing">
+        <textarea
+          id="noteInput"
+          class="input"
+          style="min-height:120px;"
+          placeholder="상대 조건, 포지션, 용병 조건, 경기 방식, 준비물, 주차/촬영 가능 여부 등 상세하게 적어주세요."
+        ></textarea>
+      </div>
+
+      <p id="editError" class="auth-error hidden"></p>
+
+      <div class="modal-actions" style="margin-top:12px;">
+        <button id="saveButton" class="btn btn-primary btn-small">수정 내용 저장</button>
+        <button id="cancelButton" class="btn btn-outline btn-small">돌아가기</button>
+      </div>
+
+      <p class="helper-text">
+        이 모집글은 작성자 본인만 수정할 수 있습니다.<br />
+        수정 후에는 상세 페이지에서 변경 내용을 바로 확인할 수 있어요.
+      </p>
+    </section>
+  </main>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    // 🔥 너 index.html에서 쓰는 config랑 동일하게 맞춰둠
+    const firebaseConfig = {
+      apiKey: "AIzaSyC68iamTPIk6-0xHIEPJQMlzJoZCw6y9mg",
+      authDomain: "volleylink-7165f.firebaseapp.com",
+      projectId: "volleylink-7165f",
+      storageBucket: "volleylink-7165f.firebasestorage.app",
+      messagingSenderId: "891161836412",
+      appId: "1:891161836412:web:1696fc610cdf00a42442f9",
+      measurementId: "G-1CM3ZMSMTE"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const params = new URLSearchParams(window.location.search);
+    const matchId = params.get("id");
+
+    const editContainer = document.getElementById("editContainer");
+    const postTypeSelector = document.getElementById("postTypeSelector");
+    const titleInput = document.getElementById("titleInput");
+    const dateInput = document.getElementById("dateInput");
+    const locationInput = document.getElementById("locationInput");
+    const levelInput = document.getElementById("levelInput");
+    const noteInput = document.getElementById("noteInput");
+    const editError = document.getElementById("editError");
+    const saveButton = document.getElementById("saveButton");
+    const cancelButton = document.getElementById("cancelButton");
+
+    let currentUser = null;
+    let currentPostType = "교류전";
+    let originalDoc = null;
+
+    function setError(msg) {
+      editError.textContent = msg;
+      editError.classList.remove("hidden");
+    }
+
+    function clearError() {
+      editError.textContent = "";
+      editError.classList.add("hidden");
+    }
+
+    // 모집 종류 선택
+    postTypeSelector.querySelectorAll(".chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        postTypeSelector.querySelectorAll(".chip").forEach((c) =>
+          c.classList.remove("chip--active")
+        );
+        chip.classList.add("chip--active");
+        currentPostType = chip.dataset.type;
+      });
+    });
+
+    // 뒤로가기
+    cancelButton.addEventListener("click", () => {
+      if (history.length > 1) {
+        history.back();
+      } else {
+        window.location.href = "index.html";
+      }
+    });
+
+    // 로그인 확인 후 문서 로드
+    auth.onAuthStateChanged((user) => {
+      if (!user) {
+        alert("로그인 후 이용 가능합니다.");
+        window.location.href = "index.html";
+        return;
+      }
+      currentUser = user;
+
+      if (!matchId) {
+        setError("잘못된 접근입니다. 모집글 ID가 없습니다.");
+        return;
+      }
+
+      loadMatch();
+    });
+
+    function loadMatch() {
+      db.collection("matches")
+        .doc(matchId)
+        .get()
+        .then((doc) => {
+          if (!doc.exists) {
+            setError("존재하지 않는 모집글입니다.");
+            return;
+          }
+
+          originalDoc = doc;
+          const data = doc.data();
+
+          // 작성자 체크
+          if (data.createdByUid && data.createdByUid !== currentUser.uid) {
+            setError("작성자만 이 모집글을 수정할 수 있습니다.");
+            disableForm();
+          }
+
+          // 폼 값 채우기 (기존 필드와 맞춤)
+          const postType = data.postType || "교류전";
+          currentPostType = postType;
+
+          // 유형 버튼 UI 반영
+          postTypeSelector.querySelectorAll(".chip").forEach((chip) => {
+            chip.classList.toggle("chip--active", chip.dataset.type === postType);
+          });
+
+          titleInput.value = data.title || "";
+          dateInput.value = data.dateText || "";
+          locationInput.value = data.location || "";
+          levelInput.value = data.level || "";
+          noteInput.value = data.note || "";
+        })
+        .catch((error) => {
+          console.error(error);
+          setError("모집글 정보를 불러오는 중 오류가 발생했습니다.");
+        });
+    }
+
+    function disableForm() {
+      [titleInput, dateInput, locationInput, levelInput, noteInput, saveButton].forEach(
+        (el) => (el.disabled = true)
+      );
+    }
+
+    // 저장 버튼
+    saveButton.addEventListener("click", () => {
+      clearError();
+
+      if (!originalDoc) {
+        setError("모집글 정보를 아직 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
+        return;
+      }
+
+      const title = titleInput.value.trim();
+      const dateText = dateInput.value.trim();
+      const location = locationInput.value.trim();
+      const level = levelInput.value.trim();
+      const note = noteInput.value.trim();
+
+      if (!title || !dateText || !location) {
+        setError("제목, 일시, 장소는 필수 입력값입니다.");
+        return;
+      }
+
+      saveButton.disabled = true;
+      saveButton.textContent = "저장 중...";
+
+      db.collection("matches")
+        .doc(matchId)
+        .update({
+          postType: currentPostType,
+          title,
+          dateText,
+          location,
+          level,
+          note,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+          alert("수정이 완료되었습니다.");
+          window.location.href = "match-detail.html?id=" + matchId;
+        })
+        .catch((error) => {
+          console.error(error);
+          setError("저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+          saveButton.disabled = false;
+          saveButton.textContent = "수정 내용 저장";
+        });
+    });
+  </script>
+</body>
+</html>
